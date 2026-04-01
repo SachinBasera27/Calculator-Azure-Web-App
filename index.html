@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Azure Calculator</title>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow:wght@300;400;600&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #0a0e1a;
+      --surface:  #111827;
+      --border:   #1e3a5f;
+      --accent:   #0078d4;
+      --accent2:  #00b4d8;
+      --text:     #e2e8f0;
+      --muted:    #64748b;
+      --success:  #10b981;
+      --error:    #ef4444;
+      --mono:     'Share Tech Mono', monospace;
+      --sans:     'Barlow', sans-serif;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background-image:
+        radial-gradient(ellipse 80% 50% at 50% -10%, rgba(0,120,212,0.15) 0%, transparent 70%),
+        linear-gradient(180deg, #0a0e1a 0%, #060912 100%);
+    }
+
+    /* Grid lines atmosphere */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(0,120,212,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,120,212,0.04) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 32px;
+      animation: fadeDown 0.6s ease both;
+    }
+
+    header .label {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 4px;
+      color: var(--accent2);
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    header h1 {
+      font-size: 28px;
+      font-weight: 300;
+      letter-spacing: 2px;
+      color: var(--text);
+    }
+
+    header h1 span {
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 36px;
+      width: 100%;
+      max-width: 440px;
+      box-shadow: 0 0 60px rgba(0,120,212,0.08), 0 20px 40px rgba(0,0,0,0.5);
+      animation: fadeUp 0.6s ease 0.1s both;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--accent), var(--accent2), transparent);
+    }
+
+    .input-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .field label {
+      display: block;
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 2px;
+      color: var(--muted);
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .field input {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 14px;
+      font-family: var(--mono);
+      font-size: 18px;
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      appearance: none;
+      -moz-appearance: textfield;
+    }
+
+    .field input::-webkit-outer-spin-button,
+    .field input::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+    .field input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(0,120,212,0.15);
+    }
+
+    .ops-label {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 2px;
+      color: var(--muted);
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .ops-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+
+    .op-btn {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px 8px;
+      font-family: var(--mono);
+      font-size: 20px;
+      color: var(--muted);
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .op-btn span.op-label {
+      font-family: var(--sans);
+      font-size: 10px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    .op-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent2);
+      background: rgba(0,120,212,0.06);
+    }
+
+    .op-btn.active {
+      border-color: var(--accent);
+      background: rgba(0,120,212,0.15);
+      color: var(--accent2);
+      box-shadow: 0 0 12px rgba(0,120,212,0.2);
+    }
+
+    .calc-btn {
+      width: 100%;
+      padding: 14px;
+      background: var(--accent);
+      border: none;
+      border-radius: 8px;
+      font-family: var(--mono);
+      font-size: 13px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: #fff;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
+      box-shadow: 0 4px 20px rgba(0,120,212,0.3);
+    }
+
+    .calc-btn:hover {
+      background: #1084e0;
+      box-shadow: 0 4px 28px rgba(0,120,212,0.5);
+    }
+
+    .calc-btn:active { transform: scale(0.98); }
+
+    .calc-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .result-box {
+      margin-top: 20px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 18px 20px;
+      display: none;
+      animation: pop 0.3s cubic-bezier(0.34,1.56,0.64,1) both;
+    }
+
+    .result-box.visible { display: block; }
+
+    .result-box.has-error {
+      border-color: var(--error);
+    }
+
+    .result-expression {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .result-value {
+      font-family: var(--mono);
+      font-size: 32px;
+      font-weight: 400;
+      color: var(--success);
+    }
+
+    .result-box.has-error .result-value {
+      font-size: 14px;
+      color: var(--error);
+    }
+
+    .history {
+      margin-top: 24px;
+      animation: fadeUp 0.6s ease 0.2s both;
+      width: 100%;
+      max-width: 440px;
+    }
+
+    .history-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .history-header span {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 2px;
+      color: var(--muted);
+      text-transform: uppercase;
+    }
+
+    .clear-btn {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 1px;
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+
+    .clear-btn:hover { color: var(--error); }
+
+    .history-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-height: 180px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .history-list::-webkit-scrollbar { width: 4px; }
+    .history-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+    .history-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px 14px;
+      font-family: var(--mono);
+      font-size: 13px;
+      color: var(--muted);
+      animation: fadeUp 0.2s ease both;
+    }
+
+    .history-item .hi-result { color: var(--text); }
+
+    .empty-history {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--muted);
+      text-align: center;
+      padding: 16px 0;
+      opacity: 0.5;
+    }
+
+    @keyframes fadeDown {
+      from { opacity: 0; transform: translateY(-16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes pop {
+      from { opacity: 0; transform: scale(0.95); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="label">Azure · Deployed</div>
+  <h1>CALC<span>ULATOR</span></h1>
+</header>
+
+<div class="card">
+  <div class="input-row">
+    <div class="field">
+      <label>Number A</label>
+      <input type="number" id="num1" placeholder="0" />
+    </div>
+    <div class="field">
+      <label>Number B</label>
+      <input type="number" id="num2" placeholder="0" />
+    </div>
+  </div>
+
+  <div class="ops-label">Operation</div>
+  <div class="ops-grid">
+    <button class="op-btn active" data-op="add">
+      +<span class="op-label">Add</span>
+    </button>
+    <button class="op-btn" data-op="subtract">
+      −<span class="op-label">Sub</span>
+    </button>
+    <button class="op-btn" data-op="multiply">
+      ×<span class="op-label">Mul</span>
+    </button>
+    <button class="op-btn" data-op="divide">
+      ÷<span class="op-label">Div</span>
+    </button>
+  </div>
+
+  <button class="calc-btn" id="calcBtn">CALCULATE</button>
+
+  <div class="result-box" id="resultBox">
+    <div class="result-expression" id="resultExpr"></div>
+    <div class="result-value" id="resultValue"></div>
+  </div>
+</div>
+
+<div class="history">
+  <div class="history-header">
+    <span>History</span>
+    <button class="clear-btn" id="clearHistory">Clear</button>
+  </div>
+  <ul class="history-list" id="historyList">
+    <li class="empty-history">No calculations yet</li>
+  </ul>
+</div>
+
+<script>
+  let selectedOp = "add";
+  const history = [];
+
+  document.querySelectorAll(".op-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".op-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      selectedOp = btn.dataset.op;
+    });
+  });
+
+  document.getElementById("calcBtn").addEventListener("click", async () => {
+    const num1 = document.getElementById("num1").value;
+    const num2 = document.getElementById("num2").value;
+    const btn  = document.getElementById("calcBtn");
+    const box  = document.getElementById("resultBox");
+
+    if (num1 === "" || num2 === "") {
+      showResult(null, "Please enter both numbers", true); return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = "COMPUTING...";
+
+    try {
+      const res  = await fetch("/calculate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ num1, num2, operation: selectedOp })
+      });
+      const data = await res.json();
+
+      if (data.error) {
+        showResult(null, data.error, true);
+      } else {
+        showResult(data.expression, data.result, false);
+        addHistory(data.expression);
+      }
+    } catch (e) {
+      showResult(null, "Network error. Please try again.", true);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = "CALCULATE";
+    }
+  });
+
+  // Allow Enter key
+  document.addEventListener("keydown", e => {
+    if (e.key === "Enter") document.getElementById("calcBtn").click();
+  });
+
+  function showResult(expr, value, isError) {
+    const box   = document.getElementById("resultBox");
+    const exprEl = document.getElementById("resultExpr");
+    const valEl  = document.getElementById("resultValue");
+
+    box.classList.remove("visible", "has-error");
+    void box.offsetWidth; // reflow to restart animation
+
+    if (isError) {
+      exprEl.textContent = "Error";
+      valEl.textContent  = value;
+      box.classList.add("has-error");
+    } else {
+      exprEl.textContent = "Result";
+      valEl.textContent  = value;
+    }
+    box.classList.add("visible");
+  }
+
+  function addHistory(expression) {
+    history.unshift(expression);
+    if (history.length > 20) history.pop();
+    renderHistory();
+  }
+
+  function renderHistory() {
+    const list = document.getElementById("historyList");
+    if (history.length === 0) {
+      list.innerHTML = '<li class="empty-history">No calculations yet</li>';
+      return;
+    }
+    list.innerHTML = history.map(h =>
+      `<li class="history-item">${h}</li>`
+    ).join("");
+  }
+
+  document.getElementById("clearHistory").addEventListener("click", () => {
+    history.length = 0;
+    renderHistory();
+  });
+</script>
+
+</body>
+</html>
