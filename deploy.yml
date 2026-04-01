@@ -1,35 +1,43 @@
 name: Deploy to Azure Web App
-
+ 
 on:
   push:
     branches:
-      - main   # Triggers whenever you push to main
-
+      - main
+ 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-
+ 
     steps:
       # Step 1: Check out your repo code
       - name: Checkout repository
         uses: actions/checkout@v4
-
-      # Step 2: Set up Python 3.11
+ 
+      # Step 2: Set up Python 3.12 (stable, avoid 3.14 pre-release)
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
-
-      # Step 3: Install dependencies
-      - name: Install dependencies
+          python-version: "3.12"
+ 
+      # Step 3: Create virtual environment named 'antenv' (Azure looks for this name)
+      # and install all dependencies inside it
+      - name: Create virtual env and install dependencies
         run: |
-          python -m pip install --upgrade pip
+          python -m venv antenv
+          source antenv/bin/activate
+          pip install --upgrade pip
           pip install -r requirements.txt
-
-      # Step 4: Deploy to Azure Web App using publish profile secret
+ 
+      # Step 4: Zip everything including the antenv folder
+      - name: Zip artifact for deployment
+        run: zip -r release.zip . -x "*.git*"
+ 
+      # Step 5: Deploy the zip to Azure Web App
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
-          app-name: ${{ secrets.AZURE_WEBAPP_NAME }}        # Your Azure Web App name
-          publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE }}  # Publish profile XML from Azure portal
-          package: .
+          app-name: ${{ secrets.AZURE_WEBAPP_NAME }}
+          publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE }}
+          package: release.zip
+ 
