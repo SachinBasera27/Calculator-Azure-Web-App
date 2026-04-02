@@ -66,5 +66,5 @@ jobs:
           app-name: 'Python-Calc'
           slot-name: 'Production'
           package: release.zip
-          slot-name: 'Production'
+         
           
