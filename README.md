@@ -50,7 +50,7 @@ python app.py
 
 ### 1. Create the Web App in Azure Portal
 - Go to **Azure Portal → App Services → Create**
-- Runtime stack: **Python 3.11**
+- Runtime stack: **Python 3.12**
 - OS: **Linux**
 - Region: your preferred region
 
