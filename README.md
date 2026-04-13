@@ -1,5 +1,9 @@
 # Flask Calculator — Azure Web App
 
+Working Link: https://python-calc-daftbkdfbxc5h8an.centralus-01.azurewebsites.net
+
+#Note: If the link asks you to authenticate yourself, it is because I might have been testing with the Authentication part. Reach out to me to get the authentication removed. I will either remove the authentication or would allow the application to let the users register from their home tenant(Guest users) or with a 3rd party IDP such as Google or facebook.
+
 A simple arithmetic calculator built with Python + Flask, deployed on Azure Web App via GitHub Actions.
 
 ---
