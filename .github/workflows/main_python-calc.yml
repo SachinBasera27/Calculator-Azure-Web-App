@@ -30,7 +30,6 @@ jobs:
         run: |
           zip -r release.zip . \
             --exclude "*.git*" \
-            --exclude "antenv/*" \
             --exclude "__pycache__/*" \
             --exclude "*.pyc"
 
