@@ -20,13 +20,9 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Create and activate virtual environment
-        run: |
-          python -m venv antenv
-          source antenv/bin/activate
-          pip install -r requirements.txt
-
-      - name: Zip artifact preserving folder structure
+      # Zip the source code only - NO antenv
+      # Azure Oryx will run pip install itself using requirements.txt
+      - name: Zip source code for deployment
         run: |
           zip -r release.zip . \
             --exclude "*.git*" \
@@ -65,5 +61,3 @@ jobs:
           app-name: 'Python-Calc'
           slot-name: 'Production'
           package: release.zip
-         
-          
