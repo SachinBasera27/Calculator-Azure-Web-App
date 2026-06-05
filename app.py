@@ -43,6 +43,9 @@ def calculate():
         "result": result_display,
         "expression": f"{num1:g} {symbol} {num2:g} = {result_display}"
     })
+    
+#if __name__ == "__main__":
+#    app.run(debug=False)
 
 if __name__ == "__main__":
-    app.run(debug=False)
+    app.run(host="0.0.0.0", port=5000, debug=False)
